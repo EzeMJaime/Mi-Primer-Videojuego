@@ -6,15 +6,19 @@ public class Enemigo : MonoBehaviour
 {
     public float velocidad = 3f;
     public float vida = 3f;
-    public float distanciaMaximaDelJugador = 10f; // Radio para el spawn
+    public float danio = 1f; // Daño que inflige al jugador
+    public float distanciaMaximaDelJugador = 10f;
+    public float distanciaParaAtacar = 1f; // Distancia para infligir daño
     private Transform jugador;
+    private Jugador scriptJugador;
 
     void Start()
     {
         jugador = GameObject.Find("Jugador").transform;
-        // Posicionar al enemigo a una distancia alejada del jugador
+        scriptJugador = jugador.GetComponent<Jugador>();
+
         float angulo = Random.Range(0f, 360f);
-        float distancia = Random.Range(distanciaMaximaDelJugador - 5f, distanciaMaximaDelJugador); // Rango aleatorio dentro del radio
+        float distancia = Random.Range(distanciaMaximaDelJugador - 5f, distanciaMaximaDelJugador);
         Vector2 posicion = new Vector2(
             jugador.position.x + Mathf.Cos(angulo) * distancia,
             jugador.position.y + Mathf.Sin(angulo) * distancia
@@ -24,27 +28,24 @@ public class Enemigo : MonoBehaviour
 
     void Update()
     {
-        // Mover al enemigo hacia el jugador
-        if (jugador != null)
+        if (jugador == null) return;
+
+        Vector2 direccion = (jugador.position - transform.position).normalized;
+        transform.position = Vector2.MoveTowards(transform.position, jugador.position, velocidad * Time.deltaTime);
+
+        // Si el enemigo está cerca del jugador, inflige daño
+        if (Vector2.Distance(transform.position, jugador.position) <= distanciaParaAtacar)
         {
-            Vector2 direccion = (jugador.position - transform.position).normalized;
-            transform.position = Vector2.MoveTowards(transform.position, jugador.position, velocidad * Time.deltaTime);
+            scriptJugador.RecibirDanio(danio * Time.deltaTime);
         }
     }
 
-    // Método para recibir daño
     public void RecibirDanio(float cantidad)
     {
         vida -= cantidad;
         if (vida <= 0)
         {
-            Morir();
+            Destroy(gameObject);
         }
-    }
-
-    void Morir()
-    {
-        // Aquí puedes agregar una animación o efectos antes de destruir el objeto
-        Destroy(gameObject); // Eliminar el enemigo
     }
 }

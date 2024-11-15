@@ -164,7 +164,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocidad: 2
   vida: 3
+  danio: 1
   distanciaMaximaDelJugador: 10
+  distanciaParaAtacar: 1
 --- !u!95 &1861671005722488281
 Animator:
   serializedVersion: 5

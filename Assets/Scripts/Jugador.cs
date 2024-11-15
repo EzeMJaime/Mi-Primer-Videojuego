@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Jugador : MonoBehaviour
 {
+    public float vida = 10f; // Vida máxima del jugador
     public float danio = 1f; // Daño del jugador al atacar
     public float alcanceDeAtaque = 2f; // Distancia desde el jugador para el ataque
     public float anguloDeAtaque = 60f; // Ángulo del triángulo de ataque
@@ -12,8 +13,12 @@ public class Jugador : MonoBehaviour
     private bool enCooldown = false; // Indica si el jugador está en cooldown
     public GameObject efectoTrianguloPrefab; // Prefab para el diseño visual del ataque
 
+    private bool estaMuerto = false; // Indica si el jugador está muerto
+
     void Update()
     {
+        if (estaMuerto) return;
+
         if (!enCooldown)
         {
             // Detectar enemigos dentro del rango del triángulo de ataque
@@ -31,8 +36,7 @@ public class Jugador : MonoBehaviour
     // Detectar enemigos dentro de un rango triangular
     Collider2D[] DetectarEnemigosEnRango()
     {
-        Collider2D[] enemigosEnRango = Physics2D.OverlapCircleAll(transform.position, alcanceDeAtaque, capaEnemigos);
-        return enemigosEnRango;
+        return Physics2D.OverlapCircleAll(transform.position, alcanceDeAtaque, capaEnemigos);
     }
 
     // Realizar el ataque sobre los enemigos detectados
@@ -44,29 +48,20 @@ public class Jugador : MonoBehaviour
         }
     }
 
-    // Mostrar efectos visuales del ataque en forma de triángulo
+    // Mostrar efectos visuales del ataque
     void MostrarEfectosVisuales(Collider2D[] enemigos)
     {
-        if (efectoTrianguloPrefab != null)
+        if (efectoTrianguloPrefab == null) return;
+
+        Transform enemigoMasCercano = EncontrarEnemigoMasCercano(enemigos);
+        if (enemigoMasCercano != null)
         {
-            // Encontrar al enemigo más cercano
-            Transform enemigoMasCercano = EncontrarEnemigoMasCercano(enemigos);
+            Vector3 direccionAtaque = (enemigoMasCercano.position - transform.position).normalized;
+            float anguloRotacion = Mathf.Atan2(direccionAtaque.y, direccionAtaque.x) * Mathf.Rad2Deg;
+            Vector3 posicionEfecto = transform.position + direccionAtaque * alcanceDeAtaque;
 
-            if (enemigoMasCercano != null)
-            {
-                // Calcular la dirección hacia el enemigo más cercano
-                Vector3 direccionAtaque = (enemigoMasCercano.position - transform.position).normalized;
-
-                // Calcular la rotación para que el ataque apunte al enemigo
-                float anguloRotacion = Mathf.Atan2(direccionAtaque.y, direccionAtaque.x) * Mathf.Rad2Deg;
-
-                // Calcular la posición de aparición del efecto en el borde del triángulo
-                Vector3 posicionEfecto = transform.position + direccionAtaque * alcanceDeAtaque;
-
-                // Crear el efecto visual del triángulo en la posición calculada
-                GameObject efecto = Instantiate(efectoTrianguloPrefab, posicionEfecto, Quaternion.Euler(0, 0, anguloRotacion));
-                Destroy(efecto, 0.5f); // Destruir el efecto después de 0.5 segundos
-            }
+            GameObject efecto = Instantiate(efectoTrianguloPrefab, posicionEfecto, Quaternion.Euler(0, 0, anguloRotacion));
+            Destroy(efecto, 0.5f);
         }
     }
 
@@ -92,15 +87,37 @@ public class Jugador : MonoBehaviour
     // Activar el cooldown entre ataques
     IEnumerator ActivarCooldown()
     {
-        enCooldown = true; // Activa el cooldown
-        yield return new WaitForSeconds(tiempoCooldown); // Espera el tiempo de cooldown
-        enCooldown = false; // Desactiva el cooldown
+        enCooldown = true;
+        yield return new WaitForSeconds(tiempoCooldown);
+        enCooldown = false;
     }
 
-    // Visualizar el alcance de ataque en el Editor de Unity (para ver el rango del triángulo)
+    // Método para recibir daño
+    public void RecibirDanio(float cantidad)
+    {
+        if (estaMuerto) return;
+
+        vida -= cantidad;
+
+        if (vida <= 0)
+        {
+            Morir();
+        }
+    }
+
+    // Manejar la muerte del jugador
+    void Morir()
+    {
+        estaMuerto = true;
+        Debug.Log("Jugador ha muerto");
+        Destroy(gameObject); // Eliminar el jugador
+        FindObjectOfType<GeneradorEnemigos>().DetenerGeneracion(); // Detener la generación de enemigos
+    }
+
+    // Visualizar el alcance de ataque en el Editor de Unity
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, alcanceDeAtaque); // Mostrar el radio del ataque
+        Gizmos.DrawWireSphere(transform.position, alcanceDeAtaque);
     }
 }
