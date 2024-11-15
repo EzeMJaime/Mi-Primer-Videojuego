@@ -6,14 +6,14 @@ public class PlayerMovimiento : MonoBehaviour
 {
     [SerializeField] private float velocidad = 3f;
 
-    private Rigidbody2D playerRb;
+    private Rigidbody2D jugadorRb;
     private Vector2 moveInput;
-    private Animator playerAnimator;
+    private Animator jugadorAnimator;
 
     void Start()
     {
-        playerRb = GetComponent<Rigidbody2D>();
-        playerAnimator = GetComponent<Animator>();
+        jugadorRb = GetComponent<Rigidbody2D>();
+        jugadorAnimator = GetComponent<Animator>();
     }
 
     void Update()
@@ -22,13 +22,13 @@ public class PlayerMovimiento : MonoBehaviour
         float moveY = Input.GetAxisRaw("Vertical");
         moveInput = new Vector2(moveX, moveY).normalized;
 
-        playerAnimator.SetFloat("Horizontal", moveX);
-        playerAnimator.SetFloat("Vertical", moveY);
-        playerAnimator.SetFloat("Velocidad", moveInput.sqrMagnitude);
+        jugadorAnimator.SetFloat("Horizontal", moveX);
+        jugadorAnimator.SetFloat("Vertical", moveY);
+        jugadorAnimator.SetFloat("Velocidad", moveInput.sqrMagnitude);
     }
 
     private void FixedUpdate()
     {
-        playerRb.MovePosition(playerRb.position + moveInput * velocidad * Time.fixedDeltaTime);
+        jugadorRb.MovePosition(jugadorRb.position + moveInput * velocidad * Time.fixedDeltaTime);
     }
 }
