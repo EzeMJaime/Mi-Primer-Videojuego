@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Jugador : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class Jugador : MonoBehaviour
     public float tiempoCooldown = 1f; // Cooldown entre ataques
     private bool enCooldown = false; // Indica si el jugador está en cooldown
     public GameObject efectoTrianguloPrefab; // Prefab para el diseño visual del ataque
+    public event EventHandler MuerteJugador;
 
     private bool estaMuerto = false; // Indica si el jugador está muerto
 
@@ -110,6 +112,7 @@ public class Jugador : MonoBehaviour
     {
         estaMuerto = true;
         Debug.Log("Jugador ha muerto");
+        MuerteJugador?.Invoke(this, EventArgs.Empty);
         Destroy(gameObject); // Eliminar el jugador
         FindObjectOfType<GeneradorEnemigos>().DetenerGeneracion(); // Detener la generación de enemigos
     }
